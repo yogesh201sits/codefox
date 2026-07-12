@@ -20,9 +20,9 @@ export const FindingSchema = z.object({
 
   file: z.string(),
 
-  startLine: z.number().optional(),
+  startLine: z.number().nullable(),
 
-  endLine: z.number().optional(),
+  endLine: z.number().nullable(),
 
   description: z.string(),
 
