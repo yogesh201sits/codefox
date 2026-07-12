@@ -1,15 +1,20 @@
-import type {ReviewFile,ReviewResult,} from "./types";
+import { llm } from "./client";
+import { ReviewResultSchema } from "./schema";
+import { REVIEW_PROMPT } from "./prompts";
 
-export async function reviewPullRequest(
-  files: ReviewFile[]
-): Promise<ReviewResult> {
+const reviewer = llm.withStructuredOutput(
+  ReviewResultSchema
+);
 
-  console.log(
-    `Reviewing ${files.length} files`
-  );
-
-  return {
-    summary: "",
-    comments: [],
-  };
+export async function reviewPullRequest(diff: string) {
+  return await reviewer.invoke([
+    {
+      role: "system",
+      content: REVIEW_PROMPT,
+    },
+    {
+      role: "user",
+      content: diff,
+    },
+  ]);
 }
