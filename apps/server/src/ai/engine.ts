@@ -1,20 +1,16 @@
 import { llm } from "./client";
+import { reviewPrompt } from "./prompts";
 import { ReviewResultSchema } from "./schema";
-import { REVIEW_PROMPT } from "./prompts";
-
-const reviewer = llm.withStructuredOutput(
-  ReviewResultSchema
-);
 
 export async function reviewPullRequest(diff: string) {
-  return await reviewer.invoke([
-    {
-      role: "system",
-      content: REVIEW_PROMPT,
-    },
-    {
-      role: "user",
-      content: diff,
-    },
-  ]);
+  const structuredLlm = llm.withStructuredOutput(
+    ReviewResultSchema
+  );
+
+  const messages = await reviewPrompt.formatMessages({
+    diff,
+  });
+
+  return structuredLlm.invoke(messages);
+  
 }
