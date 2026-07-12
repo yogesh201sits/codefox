@@ -1,19 +1,11 @@
+import { z } from "zod";
+import {  FindingSchema,  ReviewResultSchema,} from "./schema";
+
 export interface ReviewFile {
   filename: string;
   patch: string;
 }
 
-export interface ReviewComment {
-  file: string;
-  line?: number;
-  severity: "low" | "medium" | "high";
+export type Finding = z.infer<typeof FindingSchema>;
 
-  title: string;
-  description: string;
-  suggestion: string;
-}
-
-export interface ReviewResult {
-  summary: string;
-  comments: ReviewComment[];
-}
+export type ReviewResult = z.infer<typeof ReviewResultSchema>;
