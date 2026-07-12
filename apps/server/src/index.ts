@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { getPullRequestFiles } from "./github";
 
 const app = new Hono();
 
@@ -36,6 +37,14 @@ app.post("/webhooks/github", async (c) => {
   const owner = payload.repository.owner.login;
   const repo = payload.repository.name;
   const prNumber = payload.pull_request.number;
+
+  const files = await getPullRequestFiles(
+    owner,
+    repo,
+    prNumber
+  );
+
+  console.log(files);
 
   console.log({
     action,
