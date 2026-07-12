@@ -11,17 +11,43 @@ app.get("/", (c) => {
 
 
 app.post("/webhooks/github", async (c) => {
+  const event = c.req.header("X-GitHub-Event");
+
+  if (event !== "pull_request") {
+    return c.json({
+      ignored: true,
+      reason: "Not a pull_request event",
+    });
+  }
+
   const payload = await c.req.json();
 
-  console.log("GitHub Event Received");
-  console.log(payload);
+  const action = payload.action;
+
+  const supportedActions = ["opened", "synchronize", "reopened"];
+
+  if (!supportedActions.includes(action)) {
+    return c.json({
+      ignored: true,
+      reason: `Unsupported action: ${action}`,
+    });
+  }
+
+  const owner = payload.repository.owner.login;
+  const repo = payload.repository.name;
+  const prNumber = payload.pull_request.number;
+
+  console.log({
+    action,
+    owner,
+    repo,
+    prNumber,
+  });
 
   return c.json({
     received: true,
-    payload
   });
 });
-
 
 export default {
   port: 3000,
