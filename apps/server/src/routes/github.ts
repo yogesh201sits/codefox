@@ -1,59 +1,41 @@
 import { Hono } from "hono";
 import { runReview } from "../services";
+import {
+  isSupportedEvent,
+  isSupportedAction,
+  parsePullRequestWebhook,
+} from "../github/webhook";
 
 const github = new Hono();
 
 github.post("/webhooks/github", async (c) => {
   const event = c.req.header("X-GitHub-Event");
 
-  if (event !== "pull_request") {
+  if (!isSupportedEvent(event)) {
     return c.json({
       ignored: true,
-      reason: "Not a pull_request event",
+      reason: "Unsupported event",
     });
   }
 
   const payload = await c.req.json();
 
-  const action = payload.action;
-
-  const supportedActions = [
-    "opened",
-    "synchronize",
-    "reopened",
-  ];
-
-  if (!supportedActions.includes(action)) {
+  if (!isSupportedAction(payload.action)) {
     return c.json({
       ignored: true,
-      reason: `Unsupported action: ${action}`,
+      reason: `Unsupported action: ${payload.action}`,
     });
   }
 
-  const owner = payload.repository.owner.login;
-  const repo = payload.repository.name;
-  const prNumber = payload.pull_request.number;
-
-  const review = await runReview({
-    owner,
-    repo,
-    prNumber,
-  });
-
-  // TODO:
-  // await postReview({
-  //   owner,
-  //   repo,
-  //   prNumber,
-  //   review,
-  // });
+  const review = await runReview(
+    parsePullRequestWebhook(payload)
+  );
 
   console.log(review);
 
   return c.json({
     received: true,
   });
-  
 });
 
 export default github;

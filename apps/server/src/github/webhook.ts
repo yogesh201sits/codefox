@@ -24,3 +24,45 @@ export function verifyWebhookSignature(
 
   return timingSafeEqual(expected, received);
 }
+
+const SUPPORTED_EVENTS = [
+  "pull_request",
+] as const;
+
+const SUPPORTED_ACTIONS = [
+  "opened",
+  "reopened",
+  "synchronize",
+] as const;
+
+export interface PullRequestWebhook {
+  owner: string;
+  repo: string;
+  prNumber: number;
+}
+
+export function isSupportedEvent(
+  event: string | undefined
+) {
+  return SUPPORTED_EVENTS.includes(
+    event as any
+  );
+}
+
+export function isSupportedAction(
+  action: string
+) {
+  return SUPPORTED_ACTIONS.includes(
+    action as any
+  );
+}
+
+export function parsePullRequestWebhook(
+  payload: any
+): PullRequestWebhook {
+  return {
+    owner: payload.repository.owner.login,
+    repo: payload.repository.name,
+    prNumber: payload.pull_request.number,
+  };
+}
