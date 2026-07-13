@@ -1,6 +1,9 @@
 import { buildReviewDiff } from "../ai/diff-builder";
 import { reviewPullRequest } from "../ai/engine";
-import { getPullRequestFiles } from "../github";
+import {
+  getPullRequestFiles,
+  postSummaryComment,
+} from "../github";
 
 interface RunReviewOptions {
   owner: string;
@@ -28,6 +31,14 @@ export async function runReview({
 
   const diff = buildReviewDiff(reviewFiles);
 
-  return reviewPullRequest(diff);
-  
+  const review = await reviewPullRequest(diff);
+
+  await postSummaryComment({
+    owner,
+    repo,
+    prNumber,
+    review,
+  });
+
+  return review;
 }

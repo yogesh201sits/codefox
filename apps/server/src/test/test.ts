@@ -1,23 +1,49 @@
-import { getPullRequestFiles } from "../github";
-import { reviewPullRequest } from "../ai/engine";
 import "dotenv/config";
 
-const files = await getPullRequestFiles(
-  "yogesh201sits",
-  "testRepo",
-  1
-);
+import { reviewPullRequest } from "../ai/engine";
+import { buildReviewDiff } from "../ai/diff-builder";
+import { getPullRequestFiles } from "../github";
+import { runReview } from "../services";
 
-console.log(
-  JSON.stringify(files, null, 2)
-);
+// const files = await getPullRequestFiles(
+//   "yogesh201sits",
+//   "testRepo",
+//   1
+// );
 
-const result = await reviewPullRequest(files[0]!.patch!);
+// const reviewFiles = files
+//   .filter((file) => file.patch)
+//   .map((file) => ({
+//     filename: file.filename,
+//     patch: file.patch!,
+//   }));
+
+// const diff = buildReviewDiff(reviewFiles);
+
+// console.log(diff);
+
+// const result = await reviewPullRequest(diff);
+
+
+
+
+
+const result = await runReview({
+  owner: "yogesh201sits",
+  repo: "testRepo",
+  prNumber: 1,
+});
 
 console.log(
   JSON.stringify(result, null, 2)
 );
 
+
+
+
+// console.log(
+//   JSON.stringify(result, null, 2)
+// );
 // OutputFileType:
 // E:\wdProj\codefox\apps\server> bun run src/test/test.ts
 // [
