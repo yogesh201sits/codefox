@@ -1,59 +1,61 @@
 import { Hono } from "hono";
 import { runReview } from "../services";
+import {
+  verifyWebhookSignature,
+  isSupportedAction,
+  isSupportedEvent,
+  parsePullRequestWebhook,
+} from "../github/webhook";
 
 const github = new Hono();
 
 github.post("/webhooks/github", async (c) => {
+  const body = await c.req.text();
+
+  const signature = c.req.header(
+    "X-Hub-Signature-256"
+  );
+
+  const valid = verifyWebhookSignature(
+    body,
+    signature,
+    process.env.GITHUB_WEBHOOK_SECRET!
+  );
+
+  if (!valid) {
+    return c.json(
+      {
+        error: "Invalid webhook signature",
+      },
+      401
+    );
+  }
+
+  const payload = JSON.parse(body);
+
   const event = c.req.header("X-GitHub-Event");
 
-  if (event !== "pull_request") {
+  if (!isSupportedEvent(event)) {
     return c.json({
       ignored: true,
-      reason: "Not a pull_request event",
+      reason: "Unsupported event",
     });
   }
 
-  const payload = await c.req.json();
-
-  const action = payload.action;
-
-  const supportedActions = [
-    "opened",
-    "synchronize",
-    "reopened",
-  ];
-
-  if (!supportedActions.includes(action)) {
+  if (!isSupportedAction(payload.action)) {
     return c.json({
       ignored: true,
-      reason: `Unsupported action: ${action}`,
+      reason: `Unsupported action: ${payload.action}`,
     });
   }
 
-  const owner = payload.repository.owner.login;
-  const repo = payload.repository.name;
-  const prNumber = payload.pull_request.number;
-
-  const review = await runReview({
-    owner,
-    repo,
-    prNumber,
-  });
-
-  // TODO:
-  // await postReview({
-  //   owner,
-  //   repo,
-  //   prNumber,
-  //   review,
-  // });
-
-  console.log(review);
+  await runReview(
+    parsePullRequestWebhook(payload)
+  );
 
   return c.json({
     received: true,
   });
-  
 });
 
 export default github;
