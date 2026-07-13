@@ -31,7 +31,7 @@ import { runReview } from "../services";
 const result = await runReview({
   owner: "yogesh201sits",
   repo: "testRepo",
-  prNumber: 1,
+  prNumber: 2,
 });
 
 console.log(
