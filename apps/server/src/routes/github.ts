@@ -40,6 +40,14 @@ github.post("/webhooks/github", async (c) => {
     prNumber,
   });
 
+  // TODO:
+  // await postReview({
+  //   owner,
+  //   repo,
+  //   prNumber,
+  //   review,
+  // });
+
   console.log(review);
 
   return c.json({
